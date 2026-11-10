@@ -5,4 +5,9 @@
     <RootNamespace>PcPowerMeter.Core</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- The tariff table shipped with the app. data/tariffs.json is also the file the optional online update fetches. -->
+    <EmbeddedResource Include="..\..\data\tariffs.json" LogicalName="PcPowerMeter.Core.tariffs.json" />
+  </ItemGroup>
+
 </Project>

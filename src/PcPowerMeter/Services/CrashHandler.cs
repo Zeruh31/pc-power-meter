@@ -18,8 +18,7 @@ internal static class CrashHandler
     /// <summary>Called before shutting down, e.g. to remove the tray icon.</summary>
     public static Action? Cleanup { get; set; }
 
-    public static string LogPath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PcPowerMeter", "error.log");
+    public static string LogPath => AppPaths.ErrorLogPath;
 
     public static void Install(Application app)
     {

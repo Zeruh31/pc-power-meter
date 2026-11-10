@@ -22,6 +22,9 @@ public sealed record PowerSample(
 
     /// <summary>True when the totals include a CPU value.</summary>
     public bool CpuIncluded => CpuWatts.HasValue;
+
+    /// <summary>The energy this interval added to the session, for the usage history.</summary>
+    public IntervalEnergy Energy { get; init; }
 }
 
 /// <summary>Session statistics after a sample.</summary>

@@ -30,10 +30,25 @@ public partial class MainWindow : Window
     private bool _wallTagTurkish;
     private int _sessionId;
 
-    internal MainWindow(AppSettings settings, SensorOptions options)
+    private readonly UsageHistory _usage;
+    private readonly TariffRepository _tariffs;
+    private readonly string _regionCode = CurrentRegionCode();
+    private TariffChoice _choice = TariffChoice.None;
+    private HistoryStatus _historyStatus = new(null);
+    private UsageWindow? _usageWindow;
+    private double _sessionCost;
+    private MonthlyProjection? _projection;
+    private DateTime _projectionTime;
+    private int _projectionRevision = -1;
+    private bool _tariffCheckRunning;
+
+    internal MainWindow(AppSettings settings, SensorOptions options, UsageHistory usage, TariffRepository tariffs)
     {
         InitializeComponent();
         _settings = settings;
+        _usage = usage;
+        _tariffs = tariffs;
+        _choice = TariffResolver.Resolve(_tariffs.Table, _settings, _regionCode);
 
         BuildTableHeader();
         _gpuRow = AddRow(1);
@@ -45,16 +60,57 @@ public partial class MainWindow : Window
 
         _tray = new TrayIcon(ShowFromTray, ResetSession, ExitApp);
 
-        _sampler = new SamplerService(settings, options);
+        _sampler = new SamplerService(settings, options, usage);
         _sampler.SensorsReady += info => Dispatcher.BeginInvoke(() => { _sensors = info; Render(); });
         _sampler.SampleReady += (sample, session) => Dispatcher.BeginInvoke(() => OnSample(sample, session));
         _sampler.CsvStatusChanged += status => Dispatcher.BeginInvoke(() => { _csv = status; Render(); });
+        _sampler.HistoryStatusChanged += status => Dispatcher.BeginInvoke(() => { _historyStatus = status; Render(); });
 
         SourceInitialized += (_, _) => ThemeManager.ApplyTitleBar(this);
         ThemeManager.ThemeChanged += () => Chart.InvalidateVisual();
 
         Render();
         _sampler.Start();
+        CheckTariffsOnline();
+    }
+
+    private static string CurrentRegionCode()
+    {
+        try
+        {
+            return System.Globalization.RegionInfo.CurrentRegion.TwoLetterISORegionName;
+        }
+        catch (ArgumentException)
+        {
+            return "";
+        }
+    }
+
+    /// <summary>
+    /// The app's only network access, and only when the user turned it on: fetch the tariff
+    /// table at most once a day. Failures leave the built-in or cached table in place.
+    /// </summary>
+    private async void CheckTariffsOnline()
+    {
+        if (!_settings.OnlineTariffUpdate || _tariffCheckRunning)
+        {
+            return;
+        }
+        _tariffCheckRunning = true;
+        try
+        {
+            TariffCheckResult result = await Task.Run(() => _tariffs.CheckOnlineAsync(AppPaths.Version, DateTime.UtcNow));
+            if (result == TariffCheckResult.Updated)
+            {
+                _choice = TariffResolver.Resolve(_tariffs.Table, _settings, _regionCode);
+                _projectionTime = default;
+                Render();
+            }
+        }
+        finally
+        {
+            _tariffCheckRunning = false;
+        }
     }
 
     private void OnSample(PowerSample sample, SessionSnapshot session)
@@ -65,6 +121,12 @@ public partial class MainWindow : Window
         }
         _sample = sample;
         _session = session;
+        if (_choice.Schedule is PriceSchedule prices)
+        {
+            // Priced at the middle of the interval, so a three-time limit splits it fairly.
+            DateTime middle = sample.Timestamp - TimeSpan.FromSeconds(sample.Energy.Seconds / 2);
+            _sessionCost += sample.Energy.WallWh / 1000.0 * prices.PriceAt(middle);
+        }
         _history.Add(new HistoryPoint(sample.ElapsedSeconds, sample.WallWatts, sample.DcWatts,
             sample.GpuWatts, sample.CpuWatts, sample.OtherWatts));
 
@@ -96,6 +158,7 @@ public partial class MainWindow : Window
             ? Loc.T("Detecting")
             : $"DC {W(s.DcWatts)} ÷ {Pct(s.PsuEfficiency)}" +
               (s.GpuIncluded ? "" : "  ·  " + Loc.T("RowDcNoGpu"));
+        RenderCost(s);
 
         // GPU
         bool gpuFound = sensors is not null && sensors.GpuSource != PowerSource.None;
@@ -112,7 +175,11 @@ public partial class MainWindow : Window
         _cpuRow.Set(Loc.T("RowCpu"), sensors?.CpuName, cpuKind, SourceText(cpuSource), s?.CpuWatts, st?.Cpu);
 
         // Other, DC, wall
-        _otherRow.Set(Loc.T("RowOther"), null, Kind.Estimated, Loc.T("SrcFixed"), s?.OtherWatts, st?.Other);
+        bool components = _settings.OtherMode == AppSettings.OtherComponents;
+        _otherRow.Set(Loc.T("RowOther"),
+            components ? Loc.F("OtherHover", _settings.Components.Breakdown().Count(i => i.Watts > 0)) : Loc.T("OtherFixedHover"),
+            Kind.Estimated, Loc.T(components ? "SrcComponents" : "SrcFixed"), s?.OtherWatts, st?.Other);
+        _otherRow.SetToolTip(OtherBreakdown);
         bool anyMeasured = s is not null && (s.GpuIncluded || s.CpuSource == PowerSource.EnergyMeter);
         // With a GPU sensor, intervals in which it failed are in the DC/wall totals without
         // GPU energy; say how many, so the averages are not mistaken for full measurements.
@@ -186,6 +253,10 @@ public partial class MainWindow : Window
         {
             warnings.Add(Loc.F("CsvError", _csv.Error));
         }
+        if (_historyStatus.Error is not null)
+        {
+            warnings.Add(Loc.F("HistoryError", _historyStatus.Error));
+        }
 
         string key = string.Join("\n", warnings);
         if (key == _warningKey)
@@ -209,6 +280,97 @@ public partial class MainWindow : Window
             ((TextBlock)border.Child).SetResourceReference(TextBlock.ForegroundProperty, "B.WarningFg");
             WarningPanel.Children.Add(border);
         }
+    }
+
+    /// <summary>Live cost line: cost per hour at the current wall power, session cost, monthly estimate.</summary>
+    private void RenderCost(PowerSample? s)
+    {
+        if (_choice.Schedule is not PriceSchedule prices)
+        {
+            CostText.Text = Loc.T("CostNone");
+            return;
+        }
+        DateTime now = DateTime.Now;
+        // Once a minute, and as soon as the history has been loaded at start-up.
+        bool historyArrived = _projection is null && _usage.Revision != _projectionRevision;
+        if (historyArrived || now - _projectionTime > TimeSpan.FromMinutes(1) || now < _projectionTime)
+        {
+            _projectionTime = now;
+            _projectionRevision = _usage.Revision;
+            _projection = UsageReport.Projection(_usage.Snapshot(), now, prices);
+        }
+        string perHour = s is null ? "–" : Money(s.WallWatts / 1000.0 * prices.PriceAt(now), prices.Currency);
+        string text = Loc.F("CostLine", perHour, Money(_sessionCost, prices.Currency));
+        if (_projection is { Cost: double monthly })
+        {
+            text += "  ·  " + Loc.F("CostMonthly", Money(monthly, prices.Currency), _projection.Days);
+        }
+        CostText.Text = text;
+    }
+
+    /// <summary>Small amounts get a third decimal, so a few cents per hour do not show as 0.</summary>
+    internal static string Money(double amount, string currency) =>
+        Loc.Money(amount, currency, amount != 0 && Math.Abs(amount) < 1 ? 3 : 2);
+
+    /// <summary>Tooltip content for the "other components" row.</summary>
+    private UIElement OtherBreakdown()
+    {
+        var panel = new StackPanel { MaxWidth = 420 };
+        panel.Children.Add(new TextBlock { Text = Loc.T("BreakdownTitle"), FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 6) });
+        if (_settings.OtherMode != AppSettings.OtherComponents)
+        {
+            panel.Children.Add(new TextBlock
+            {
+                Text = Loc.F("BreakdownFixed", _settings.OtherWatts.ToString("N1", Loc.Culture)),
+                TextWrapping = TextWrapping.Wrap,
+            });
+            return panel;
+        }
+
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        IReadOnlyList<ComponentItem> items = _settings.Components.Breakdown();
+        int row = 0;
+        void AddLine(string label, string detail, string watts, bool bold)
+        {
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            var cells = new[]
+            {
+                new TextBlock { Text = label, Margin = new Thickness(0, 1, 16, 1) },
+                new TextBlock { Text = detail, Margin = new Thickness(0, 1, 16, 1), HorizontalAlignment = HorizontalAlignment.Right },
+                new TextBlock { Text = watts, Margin = new Thickness(0, 1, 0, 1), HorizontalAlignment = HorizontalAlignment.Right },
+            };
+            for (int c = 0; c < cells.Length; c++)
+            {
+                if (bold)
+                {
+                    cells[c].FontWeight = FontWeights.SemiBold;
+                }
+                if (c == 1)
+                {
+                    cells[c].SetResourceReference(TextBlock.ForegroundProperty, "B.SubText");
+                }
+                Grid.SetRow(cells[c], row);
+                Grid.SetColumn(cells[c], c);
+                grid.Children.Add(cells[c]);
+            }
+            row++;
+        }
+        foreach (ComponentItem item in items)
+        {
+            string detail = item.Key is "Board" or "Cooler" or "Rgb" or "Usb" or "Extra"
+                ? ""
+                : $"{item.Count} × {item.UnitWatts.ToString("0.##", Loc.Culture)} W";
+            AddLine(Loc.T("Comp" + item.Key), detail, item.Watts.ToString("N1", Loc.Culture) + " W", false);
+        }
+        AddLine(Loc.T("BreakdownTotal"), "", items.Sum(i => i.Watts).ToString("N1", Loc.Culture) + " W", true);
+        panel.Children.Add(grid);
+        var note = new TextBlock { Text = Loc.T("BreakdownNote"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0), FontSize = 11 };
+        note.SetResourceReference(TextBlock.ForegroundProperty, "B.SubText");
+        panel.Children.Add(note);
+        return panel;
     }
 
     private static string SourceText(PowerSource source) => source switch
@@ -306,6 +468,8 @@ public partial class MainWindow : Window
         private readonly TextBlock[] _values = new TextBlock[4];
         private Kind _kind = (Kind)(-1);
         private bool _turkish;
+        private readonly StackPanel _nameStack;
+        private ToolTip? _tip;
 
         public TableRow(Grid grid, int row, bool separatorAbove, bool bold)
         {
@@ -329,6 +493,7 @@ public partial class MainWindow : Window
             nameStack.Children.Add(_name);
             nameStack.Children.Add(_detail);
             Place(grid, nameStack, row, 0);
+            _nameStack = nameStack;
 
             var tagStack = new StackPanel { Orientation = Orientation.Horizontal, Margin = margin, VerticalAlignment = VerticalAlignment.Center };
             tagStack.Children.Add(_tag);
@@ -376,6 +541,30 @@ public partial class MainWindow : Window
             _values[3].Text = stat is null ? "–" : Wh(stat.Value.EnergyWh);
         }
 
+        /// <summary>
+        /// Shows <paramref name="content"/> when the pointer rests on the row name, and also on
+        /// a click. The content is built when the tooltip opens, so it is always current.
+        /// </summary>
+        public void SetToolTip(Func<UIElement> content)
+        {
+            if (_tip is not null)
+            {
+                return;
+            }
+            var tip = new ToolTip { Padding = new Thickness(10, 8, 10, 8), PlacementTarget = _nameStack };
+            tip.SetResourceReference(Control.BackgroundProperty, "B.Surface");
+            tip.SetResourceReference(Control.ForegroundProperty, "B.Text");
+            tip.SetResourceReference(Control.BorderBrushProperty, "B.Border");
+            tip.Opened += (_, _) => tip.Content = content();
+            _tip = tip;
+            _nameStack.Background = Brushes.Transparent; // hit-testable across the whole cell
+            _nameStack.Cursor = System.Windows.Input.Cursors.Hand;
+            _nameStack.ToolTip = tip;
+            ToolTipService.SetShowDuration(_nameStack, 60000);
+            ToolTipService.SetInitialShowDelay(_nameStack, 250);
+            _nameStack.MouseLeftButtonUp += (_, _) => tip.IsOpen = !tip.IsOpen;
+        }
+
         private static void Place(Grid grid, UIElement element, int row, int column)
         {
             Grid.SetRow(element, row);
@@ -409,9 +598,28 @@ public partial class MainWindow : Window
 
     private void Reset_Click(object sender, RoutedEventArgs e) => ResetSession();
 
+    private void Usage_Click(object sender, RoutedEventArgs e)
+    {
+        if (_usageWindow is null)
+        {
+            _usageWindow = new UsageWindow(_usage, () => _choice, () => _tariffs.Table) { Owner = this };
+            _usageWindow.Closed += (_, _) => _usageWindow = null;
+            _usageWindow.Show();
+        }
+        else
+        {
+            if (_usageWindow.WindowState == WindowState.Minimized)
+            {
+                _usageWindow.WindowState = WindowState.Normal;
+            }
+            _usageWindow.Activate();
+        }
+    }
+
     private void ResetSession()
     {
         _sessionId++;
+        _sessionCost = 0;
         _sampler.ResetSession();
         _history.Clear();
         _sample = null;
@@ -422,7 +630,7 @@ public partial class MainWindow : Window
 
     private void Settings_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SettingsWindow(_settings.Clone(), SamplerService.DefaultCsvFolder) { Owner = this };
+        var dialog = new SettingsWindow(_settings.Clone(), SamplerService.DefaultCsvFolder, _tariffs, _regionCode) { Owner = this };
         if (dialog.ShowDialog() != true)
         {
             return;
@@ -430,7 +638,9 @@ public partial class MainWindow : Window
         AppSettings updated = dialog.Result.Normalized();
         bool languageChanged = updated.Language != _settings.Language;
         _settings = updated;
-        if (!SettingsStore.Save(updated, SettingsStore.DefaultPath))
+        _choice = TariffResolver.Resolve(_tariffs.Table, _settings, _regionCode);
+        _projectionTime = default;
+        if (!SettingsStore.Save(updated, AppPaths.SettingsPath))
         {
             MessageBox.Show(this, Loc.T("SaveFailed"), Loc.T("AppTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
@@ -441,7 +651,9 @@ public partial class MainWindow : Window
             _warningKey = "";
         }
         _sampler.UpdateSettings(updated);
+        _usageWindow?.Refresh(force: true);
         Render();
+        CheckTariffsOnline();
     }
 
     private void OpenFolder_Click(object sender, RoutedEventArgs e)

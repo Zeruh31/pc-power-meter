@@ -1,0 +1,473 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "updated": "2026-11-10",
+  "countries": [
+    {
+      "code": "TR",
+      "name": {
+        "en": "Türkiye",
+        "tr": "Türkiye"
+      },
+      "tariffs": [
+        {
+          "id": "tr-residential-single",
+          "name": {
+            "en": "Residential, single-time",
+            "tr": "Mesken, tek zamanlı"
+          },
+          "provider": {
+            "en": "EPDK national tariff",
+            "tr": "EPDK ulusal tarifesi"
+          },
+          "currency": "TRY",
+          "type": "tiered",
+          "tiers": [
+            {
+              "id": "low",
+              "name": {
+                "en": "Low tier",
+                "tr": "Düşük kademe"
+              },
+              "price": 3.238,
+              "limitKwhPerDay": 8,
+              "note": {
+                "en": "Household averages at most 8 kWh a day (about 240 kWh a month). Energy 49.4065 kr/kWh.",
+                "tr": "Hanenin günlük ortalaması en fazla 8 kWh (ayda yaklaşık 240 kWh). Enerji 49,4065 kr/kWh."
+              }
+            },
+            {
+              "id": "high",
+              "name": {
+                "en": "High tier",
+                "tr": "Yüksek kademe"
+              },
+              "price": 4.857,
+              "note": {
+                "en": "Household averages more than 8 kWh a day. Energy 189.5808 kr/kWh.",
+                "tr": "Hanenin günlük ortalaması 8 kWh'den fazla. Enerji 189,5808 kr/kWh."
+              }
+            }
+          ],
+          "validFrom": "2026-04-04",
+          "source": "https://www.epdk.gov.tr/Detay/Icerik/3-0-1-3/elektriktarifeler",
+          "note": {
+            "en": "EPDK Board Decision 14461 (Official Gazette 33214), in force since 4 April 2026. Residential, low voltage, single-term. Prices include taxes: (energy + 5% municipal tax on energy + distribution) x 1.10 VAT. Distribution 242.49 kr/kWh. Households using more than 4,000 kWh a year (3,000 kWh from 2027) move to the last-resort supply tariff; that is not included here.",
+            "tr": "EPDK Kurul Kararı 14461 (Resmî Gazete 33214), 4 Nisan 2026'dan beri geçerli. Mesken, alçak gerilim, tek terimli. Fiyatlar vergiler dahildir: (enerji + enerjinin %5'i BTV + dağıtım) x 1,10 KDV. Dağıtım 242,49 kr/kWh. Yılda 4.000 kWh'den (2027'den itibaren 3.000 kWh) fazla tüketen meskenler son kaynak tedarik tarifesine geçer; bu hesaba katılmamıştır."
+          }
+        },
+        {
+          "id": "tr-residential-three-time",
+          "name": {
+            "en": "Residential, three-time (day / peak / night)",
+            "tr": "Mesken, üç zamanlı (gündüz / puant / gece)"
+          },
+          "provider": {
+            "en": "EPDK national tariff",
+            "tr": "EPDK ulusal tarifesi"
+          },
+          "currency": "TRY",
+          "type": "time_of_use",
+          "periods": [
+            {
+              "id": "day",
+              "name": {
+                "en": "Day",
+                "tr": "Gündüz"
+              },
+              "start": "06:00",
+              "end": "17:00",
+              "price": 4.9204
+            },
+            {
+              "id": "peak",
+              "name": {
+                "en": "Peak",
+                "tr": "Puant"
+              },
+              "start": "17:00",
+              "end": "22:00",
+              "price": 6.9958
+            },
+            {
+              "id": "night",
+              "name": {
+                "en": "Night",
+                "tr": "Gece"
+              },
+              "start": "22:00",
+              "end": "06:00",
+              "price": 3.2607
+            }
+          ],
+          "validFrom": "2026-04-04",
+          "source": "https://www.epdk.gov.tr/Detay/Icerik/3-0-1-3/elektriktarifeler",
+          "note": {
+            "en": "EPDK Board Decision 14461 (Official Gazette 33214), in force since 4 April 2026. Residential, low voltage, single-term. Prices include taxes: (energy + 5% municipal tax on energy + distribution) x 1.10 VAT. Distribution 242.49 kr/kWh. Households using more than 4,000 kWh a year (3,000 kWh from 2027) move to the last-resort supply tariff; that is not included here. No tiers. Energy: day 195.0640, peak 374.7551, night 51.3656 kr/kWh.",
+            "tr": "EPDK Kurul Kararı 14461 (Resmî Gazete 33214), 4 Nisan 2026'dan beri geçerli. Mesken, alçak gerilim, tek terimli. Fiyatlar vergiler dahildir: (enerji + enerjinin %5'i BTV + dağıtım) x 1,10 KDV. Dağıtım 242,49 kr/kWh. Yılda 4.000 kWh'den (2027'den itibaren 3.000 kWh) fazla tüketen meskenler son kaynak tedarik tarifesine geçer; bu hesaba katılmamıştır. Kademe yok. Enerji: gündüz 195,0640, puant 374,7551, gece 51,3656 kr/kWh."
+          }
+        }
+      ]
+    },
+    {
+      "code": "AT",
+      "name": {
+        "en": "Austria",
+        "tr": "Avusturya"
+      },
+      "tariffs": [
+        {
+          "id": "at-average",
+          "name": {
+            "en": "National average (Eurostat)",
+            "tr": "Ülke ortalaması (Eurostat)"
+          },
+          "provider": {
+            "en": "Eurostat",
+            "tr": "Eurostat"
+          },
+          "currency": "EUR",
+          "type": "flat",
+          "price": 0.326,
+          "validFrom": "2026-01-01",
+          "dataPeriod": "2026-S1",
+          "source": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+          "note": {
+            "en": "Eurostat nrg_pc_204, 2026-S1: average household price, all taxes and levies included, annual consumption 2,500-4,999 kWh. A national average, not a specific supplier's price.",
+            "tr": "Eurostat nrg_pc_204, 2026-S1: hanelerin ortalama fiyatı, tüm vergi ve harçlar dahil, yıllık tüketim 2.500-4.999 kWh. Ülke ortalamasıdır, belirli bir tedarikçinin fiyatı değildir."
+          }
+        }
+      ]
+    },
+    {
+      "code": "BE",
+      "name": {
+        "en": "Belgium",
+        "tr": "Belçika"
+      },
+      "tariffs": [
+        {
+          "id": "be-average",
+          "name": {
+            "en": "National average (Eurostat)",
+            "tr": "Ülke ortalaması (Eurostat)"
+          },
+          "provider": {
+            "en": "Eurostat",
+            "tr": "Eurostat"
+          },
+          "currency": "EUR",
+          "type": "flat",
+          "price": 0.3575,
+          "validFrom": "2026-01-01",
+          "dataPeriod": "2026-S1",
+          "source": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+          "note": {
+            "en": "Eurostat nrg_pc_204, 2026-S1: average household price, all taxes and levies included, annual consumption 2,500-4,999 kWh. A national average, not a specific supplier's price.",
+            "tr": "Eurostat nrg_pc_204, 2026-S1: hanelerin ortalama fiyatı, tüm vergi ve harçlar dahil, yıllık tüketim 2.500-4.999 kWh. Ülke ortalamasıdır, belirli bir tedarikçinin fiyatı değildir."
+          }
+        }
+      ]
+    },
+    {
+      "code": "DE",
+      "name": {
+        "en": "Germany",
+        "tr": "Almanya"
+      },
+      "tariffs": [
+        {
+          "id": "de-average",
+          "name": {
+            "en": "National average (Eurostat)",
+            "tr": "Ülke ortalaması (Eurostat)"
+          },
+          "provider": {
+            "en": "Eurostat",
+            "tr": "Eurostat"
+          },
+          "currency": "EUR",
+          "type": "flat",
+          "price": 0.3618,
+          "validFrom": "2026-01-01",
+          "dataPeriod": "2026-S1",
+          "source": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+          "note": {
+            "en": "Eurostat nrg_pc_204, 2026-S1: average household price, all taxes and levies included, annual consumption 2,500-4,999 kWh. A national average, not a specific supplier's price.",
+            "tr": "Eurostat nrg_pc_204, 2026-S1: hanelerin ortalama fiyatı, tüm vergi ve harçlar dahil, yıllık tüketim 2.500-4.999 kWh. Ülke ortalamasıdır, belirli bir tedarikçinin fiyatı değildir."
+          }
+        }
+      ]
+    },
+    {
+      "code": "ES",
+      "name": {
+        "en": "Spain",
+        "tr": "İspanya"
+      },
+      "tariffs": [
+        {
+          "id": "es-average",
+          "name": {
+            "en": "National average (Eurostat)",
+            "tr": "Ülke ortalaması (Eurostat)"
+          },
+          "provider": {
+            "en": "Eurostat",
+            "tr": "Eurostat"
+          },
+          "currency": "EUR",
+          "type": "flat",
+          "price": 0.2509,
+          "validFrom": "2026-01-01",
+          "dataPeriod": "2026-S1",
+          "source": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+          "note": {
+            "en": "Eurostat nrg_pc_204, 2026-S1: average household price, all taxes and levies included, annual consumption 2,500-4,999 kWh. A national average, not a specific supplier's price.",
+            "tr": "Eurostat nrg_pc_204, 2026-S1: hanelerin ortalama fiyatı, tüm vergi ve harçlar dahil, yıllık tüketim 2.500-4.999 kWh. Ülke ortalamasıdır, belirli bir tedarikçinin fiyatı değildir."
+          }
+        }
+      ]
+    },
+    {
+      "code": "FR",
+      "name": {
+        "en": "France",
+        "tr": "Fransa"
+      },
+      "tariffs": [
+        {
+          "id": "fr-average",
+          "name": {
+            "en": "National average (Eurostat)",
+            "tr": "Ülke ortalaması (Eurostat)"
+          },
+          "provider": {
+            "en": "Eurostat",
+            "tr": "Eurostat"
+          },
+          "currency": "EUR",
+          "type": "flat",
+          "price": 0.2485,
+          "validFrom": "2026-01-01",
+          "dataPeriod": "2026-S1",
+          "source": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+          "note": {
+            "en": "Eurostat nrg_pc_204, 2026-S1: average household price, all taxes and levies included, annual consumption 2,500-4,999 kWh. A national average, not a specific supplier's price.",
+            "tr": "Eurostat nrg_pc_204, 2026-S1: hanelerin ortalama fiyatı, tüm vergi ve harçlar dahil, yıllık tüketim 2.500-4.999 kWh. Ülke ortalamasıdır, belirli bir tedarikçinin fiyatı değildir."
+          }
+        }
+      ]
+    },
+    {
+      "code": "IE",
+      "name": {
+        "en": "Ireland",
+        "tr": "İrlanda"
+      },
+      "tariffs": [
+        {
+          "id": "ie-average",
+          "name": {
+            "en": "National average (Eurostat)",
+            "tr": "Ülke ortalaması (Eurostat)"
+          },
+          "provider": {
+            "en": "Eurostat",
+            "tr": "Eurostat"
+          },
+          "currency": "EUR",
+          "type": "flat",
+          "price": 0.3871,
+          "validFrom": "2026-01-01",
+          "dataPeriod": "2026-S1",
+          "source": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+          "note": {
+            "en": "Eurostat nrg_pc_204, 2026-S1: average household price, all taxes and levies included, annual consumption 2,500-4,999 kWh. A national average, not a specific supplier's price.",
+            "tr": "Eurostat nrg_pc_204, 2026-S1: hanelerin ortalama fiyatı, tüm vergi ve harçlar dahil, yıllık tüketim 2.500-4.999 kWh. Ülke ortalamasıdır, belirli bir tedarikçinin fiyatı değildir."
+          }
+        }
+      ]
+    },
+    {
+      "code": "IT",
+      "name": {
+        "en": "Italy",
+        "tr": "İtalya"
+      },
+      "tariffs": [
+        {
+          "id": "it-average",
+          "name": {
+            "en": "National average (Eurostat)",
+            "tr": "Ülke ortalaması (Eurostat)"
+          },
+          "provider": {
+            "en": "Eurostat",
+            "tr": "Eurostat"
+          },
+          "currency": "EUR",
+          "type": "flat",
+          "price": 0.3142,
+          "validFrom": "2026-01-01",
+          "dataPeriod": "2026-S1",
+          "source": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+          "note": {
+            "en": "Eurostat nrg_pc_204, 2026-S1: average household price, all taxes and levies included, annual consumption 2,500-4,999 kWh. A national average, not a specific supplier's price.",
+            "tr": "Eurostat nrg_pc_204, 2026-S1: hanelerin ortalama fiyatı, tüm vergi ve harçlar dahil, yıllık tüketim 2.500-4.999 kWh. Ülke ortalamasıdır, belirli bir tedarikçinin fiyatı değildir."
+          }
+        }
+      ]
+    },
+    {
+      "code": "NL",
+      "name": {
+        "en": "Netherlands",
+        "tr": "Hollanda"
+      },
+      "tariffs": [
+        {
+          "id": "nl-average",
+          "name": {
+            "en": "National average (Eurostat)",
+            "tr": "Ülke ortalaması (Eurostat)"
+          },
+          "provider": {
+            "en": "Eurostat",
+            "tr": "Eurostat"
+          },
+          "currency": "EUR",
+          "type": "flat",
+          "price": 0.244,
+          "validFrom": "2026-01-01",
+          "dataPeriod": "2026-S1",
+          "source": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+          "note": {
+            "en": "Eurostat nrg_pc_204, 2026-S1: average household price, all taxes and levies included, annual consumption 2,500-4,999 kWh. A national average, not a specific supplier's price.",
+            "tr": "Eurostat nrg_pc_204, 2026-S1: hanelerin ortalama fiyatı, tüm vergi ve harçlar dahil, yıllık tüketim 2.500-4.999 kWh. Ülke ortalamasıdır, belirli bir tedarikçinin fiyatı değildir."
+          }
+        }
+      ]
+    },
+    {
+      "code": "PL",
+      "name": {
+        "en": "Poland",
+        "tr": "Polonya"
+      },
+      "tariffs": [
+        {
+          "id": "pl-average",
+          "name": {
+            "en": "National average (Eurostat)",
+            "tr": "Ülke ortalaması (Eurostat)"
+          },
+          "provider": {
+            "en": "Eurostat",
+            "tr": "Eurostat"
+          },
+          "currency": "EUR",
+          "type": "flat",
+          "price": 0.2999,
+          "validFrom": "2026-01-01",
+          "dataPeriod": "2026-S1",
+          "source": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+          "note": {
+            "en": "Eurostat nrg_pc_204, 2026-S1: average household price, all taxes and levies included, annual consumption 2,500-4,999 kWh. A national average, not a specific supplier's price. Provisional value.",
+            "tr": "Eurostat nrg_pc_204, 2026-S1: hanelerin ortalama fiyatı, tüm vergi ve harçlar dahil, yıllık tüketim 2.500-4.999 kWh. Ülke ortalamasıdır, belirli bir tedarikçinin fiyatı değildir. Geçici değer."
+          }
+        }
+      ]
+    },
+    {
+      "code": "PT",
+      "name": {
+        "en": "Portugal",
+        "tr": "Portekiz"
+      },
+      "tariffs": [
+        {
+          "id": "pt-average",
+          "name": {
+            "en": "National average (Eurostat)",
+            "tr": "Ülke ortalaması (Eurostat)"
+          },
+          "provider": {
+            "en": "Eurostat",
+            "tr": "Eurostat"
+          },
+          "currency": "EUR",
+          "type": "flat",
+          "price": 0.2367,
+          "validFrom": "2026-01-01",
+          "dataPeriod": "2026-S1",
+          "source": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+          "note": {
+            "en": "Eurostat nrg_pc_204, 2026-S1: average household price, all taxes and levies included, annual consumption 2,500-4,999 kWh. A national average, not a specific supplier's price.",
+            "tr": "Eurostat nrg_pc_204, 2026-S1: hanelerin ortalama fiyatı, tüm vergi ve harçlar dahil, yıllık tüketim 2.500-4.999 kWh. Ülke ortalamasıdır, belirli bir tedarikçinin fiyatı değildir."
+          }
+        }
+      ]
+    },
+    {
+      "code": "SE",
+      "name": {
+        "en": "Sweden",
+        "tr": "İsveç"
+      },
+      "tariffs": [
+        {
+          "id": "se-average",
+          "name": {
+            "en": "National average (Eurostat)",
+            "tr": "Ülke ortalaması (Eurostat)"
+          },
+          "provider": {
+            "en": "Eurostat",
+            "tr": "Eurostat"
+          },
+          "currency": "EUR",
+          "type": "flat",
+          "price": 0.3062,
+          "validFrom": "2026-01-01",
+          "dataPeriod": "2026-S1",
+          "source": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+          "note": {
+            "en": "Eurostat nrg_pc_204, 2026-S1: average household price, all taxes and levies included, annual consumption 2,500-4,999 kWh. A national average, not a specific supplier's price.",
+            "tr": "Eurostat nrg_pc_204, 2026-S1: hanelerin ortalama fiyatı, tüm vergi ve harçlar dahil, yıllık tüketim 2.500-4.999 kWh. Ülke ortalamasıdır, belirli bir tedarikçinin fiyatı değildir."
+          }
+        }
+      ]
+    },
+    {
+      "code": "EU",
+      "name": {
+        "en": "European Union (27)",
+        "tr": "Avrupa Birliği (27)"
+      },
+      "tariffs": [
+        {
+          "id": "eu27-average",
+          "name": {
+            "en": "National average (Eurostat)",
+            "tr": "Ülke ortalaması (Eurostat)"
+          },
+          "provider": {
+            "en": "Eurostat",
+            "tr": "Eurostat"
+          },
+          "currency": "EUR",
+          "type": "flat",
+          "price": 0.2832,
+          "validFrom": "2026-01-01",
+          "dataPeriod": "2026-S1",
+          "source": "https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_204/default/table",
+          "note": {
+            "en": "Eurostat nrg_pc_204, 2026-S1: average household price, all taxes and levies included, annual consumption 2,500-4,999 kWh. A national average, not a specific supplier's price.",
+            "tr": "Eurostat nrg_pc_204, 2026-S1: hanelerin ortalama fiyatı, tüm vergi ve harçlar dahil, yıllık tüketim 2.500-4.999 kWh. Ülke ortalamasıdır, belirli bir tedarikçinin fiyatı değildir."
+          }
+        }
+      ]
+    }
+  ]
+}

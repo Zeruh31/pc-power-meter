@@ -37,9 +37,12 @@
                                Foreground="{DynamicResource B.Accent}" />
                 </StackPanel>
                 <TextBlock x:Name="WallDetail" Style="{StaticResource SubText}" FontSize="13" />
+                <TextBlock x:Name="CostText" Style="{StaticResource SubText}" FontSize="13" Margin="0,3,0,0"
+                           TextWrapping="Wrap" />
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
                 <Button x:Name="ResetButton" Content="{DynamicResource L.Reset}" Margin="0,0,8,0" Click="Reset_Click" />
+                <Button x:Name="UsageButton" Content="{DynamicResource L.Usage}" Margin="0,0,8,0" Click="Usage_Click" />
                 <Button x:Name="SettingsButton" Content="{DynamicResource L.Settings}" Click="Settings_Click" />
             </StackPanel>
         </Grid>

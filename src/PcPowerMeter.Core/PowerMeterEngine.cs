@@ -213,7 +213,10 @@ public sealed class PowerMeterEngine
             timestamp, _elapsed,
             gpuW, gpu?.LoadPercent, gpuW.HasValue ? GpuSource : PowerSource.None,
             cpuW, cpuLoad, cpuW.HasValue ? CpuSource : PowerSource.None,
-            otherW, dcW, wallW, settings.PsuEfficiency);
+            otherW, dcW, wallW, settings.PsuEfficiency)
+        {
+            Energy = new IntervalEnergy(dtSeconds, wallWh, dcWh, gpuWh, cpuWh, otherWh, gpuW.HasValue),
+        };
         return (sample, Snapshot());
     }
 

@@ -6,7 +6,7 @@
     <Product>PC Power Meter</Product>
     <Authors>Zeruh31</Authors>
     <Copyright>Copyright (c) 2026 Zeruh31</Copyright>
-    <Version>1.0.0</Version>
+    <Version>0.2.0</Version>
     <!-- Keep machine-specific paths out of the binaries: source paths become /_/...,
          including in the Source Link map that the SDK adds to the PDB. -->
     <Deterministic>true</Deterministic>
