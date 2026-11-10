@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Test
+        run: dotnet test PcPowerMeter.sln -c Release
+
+      - name: Publish single-file exe
+        shell: pwsh
+        run: |
+          $version = $env:TAG.TrimStart('v')
+          dotnet publish src/PcPowerMeter/PcPowerMeter.csproj -c Release -r win-x64 --self-contained `
+            -p:PublishSingleFile=true -p:Version=$version -o publish
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $exe = "PcPowerMeter-$version-win-x64.exe"
+          Copy-Item publish/PcPowerMeter.exe $exe
+          $hash = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $exe" | Set-Content -Encoding ascii "$exe.sha256"
+
+      - name: Create GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = $env:TAG.TrimStart('v')
+          $exe = "PcPowerMeter-$version-win-x64.exe"
+          gh release create $env:TAG $exe "$exe.sha256" --verify-tag --generate-notes --title "PC Power Meter $env:TAG"

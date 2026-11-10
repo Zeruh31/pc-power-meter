@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <!-- Only for the notification area icon (NotifyIcon). -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>PcPowerMeter</AssemblyName>
+    <RootNamespace>PcPowerMeter</RootNamespace>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyTitle>PC Power Meter</AssemblyTitle>
+    <Description>Live PC power draw from NVML and the Windows Energy Meter, without drivers.</Description>
+    <!-- WFAC010 is a WinForms-only hint; this is a WPF app that sets DPI awareness in its manifest. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+  </PropertyGroup>
+
+  <!-- Single-file publish: also pack the native WPF libraries into the exe. -->
+  <PropertyGroup Condition="'$(PublishSingleFile)' == 'true'">
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WPF and WinForms both define Application, MessageBox, etc.; keep WPF's. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+    <!-- WPF projects leave System.IO out of the implicit usings. -->
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PcPowerMeter.Core\PcPowerMeter.Core.csproj" />
+  </ItemGroup>
+
+</Project>

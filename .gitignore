@@ -1,0 +1,24 @@
+# Build output
+bin/
+obj/
+publish/
+artifacts/
+TestResults/
+*.binlog
+
+# IDE / user files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.swp
+
+# Power logs written by the app
+*.csv
+power-log_*
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
