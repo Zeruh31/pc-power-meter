@@ -67,7 +67,11 @@ public sealed class PowerMeterEngine
     /// when the stopwatch keeps counting while nothing was measured.
     /// </summary>
     public static bool IsGap(double dtSeconds, MeterSettings settings) =>
-        dtSeconds > Math.Max(GapFactor * settings.Normalized().IntervalSeconds, MinGapSeconds);
+        IsGap(dtSeconds, settings.Normalized().IntervalSeconds);
+
+    /// <summary>Same check against an explicit expected interval in seconds.</summary>
+    public static bool IsGap(double dtSeconds, double expectedIntervalSeconds) =>
+        dtSeconds > Math.Max(GapFactor * expectedIntervalSeconds, MinGapSeconds);
 
     /// <summary>
     /// Drops the interval that just passed: takes fresh sensor baselines (including the

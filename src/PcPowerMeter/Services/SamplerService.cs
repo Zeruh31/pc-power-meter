@@ -32,6 +32,7 @@ internal sealed class SamplerService : IDisposable
     private CsvLogger? _csv;
     private PowerMeterEngine? _engine;
     private readonly Stopwatch _clock = new();
+    private readonly GapDetector _gaps = new();
     private double _nextTick;
     private double _lastTick;
 
@@ -59,6 +60,8 @@ internal sealed class SamplerService : IDisposable
             _settings = copy;
             if (copy.IntervalSeconds != old.IntervalSeconds)
             {
+                // The running interval was scheduled with the old setting; judge it by both.
+                _gaps.IntervalChanged(old.IntervalSeconds, copy.IntervalSeconds);
                 _nextTick = _lastTick + copy.IntervalSeconds;
             }
             if (copy.CsvEnabled != old.CsvEnabled || ResolveCsvFolder(copy) != ResolveCsvFolder(old))
@@ -166,7 +169,7 @@ internal sealed class SamplerService : IDisposable
             }
 
             MeterSettings meter = _settings.ToMeterSettings();
-            if (PowerMeterEngine.IsGap(dt, meter))
+            if (_gaps.IsGap(dt, meter.IntervalSeconds))
             {
                 // Sleep, hibernation or a stalled read: measure nothing for this span.
                 _engine!.Rebaseline();
